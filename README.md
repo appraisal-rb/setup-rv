@@ -1,10 +1,12 @@
-# setup-ruby-flash
+# ⚡️ setup-ruby-flash
 
 [![CI](https://github.com/appraisal-rb/setup-ruby-flash/actions/workflows/ci.yml/badge.svg)](https://github.com/appraisal-rb/setup-ruby-flash/actions/workflows/ci.yml)
 
-A GitHub Action for fast Ruby environment setup using [rv](https://github.com/spinel-coop/rv) for Ruby installation and [ore](https://github.com/contriboss/ore-light) for gem management.
+A _fast_ GitHub Action for fast Ruby environment setup using [rv](https://github.com/spinel-coop/rv) for Ruby installation and [ore](https://github.com/contriboss/ore-light) for gem management.
 
 **⚡ Install Ruby in under 2 seconds** — no compilation required!
+
+**⚡ Install Gems 50% faster** — using ORE ✅️!
 
 ## Features
 
