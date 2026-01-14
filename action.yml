@@ -260,14 +260,11 @@ runs:
 
         # Pre-seed rv's releases cache with authenticated API call to avoid rate limiting
         # rv uses etcetera for cache paths: ~/Library/Caches/rv on macOS, ~/.cache/rv on Linux
-        DETECTED_OS="${{ steps.platform.outputs.os }}"
-        echo "Detected OS for cache path: $DETECTED_OS"
-        if [ "$DETECTED_OS" = "darwin" ]; then
+        if [ "${{ steps.platform.outputs.os }}" = "darwin" ]; then
           RV_CACHE_DIR="${HOME}/Library/Caches/rv/ruby-v0/releases"
         else
           RV_CACHE_DIR="${HOME}/.cache/rv/ruby-v0/releases"
         fi
-        echo "Using rv cache directory: $RV_CACHE_DIR"
         mkdir -p "$RV_CACHE_DIR"
         CACHE_FILE="$RV_CACHE_DIR/available_rubies.json"
         
@@ -282,10 +279,8 @@ runs:
         if [ -n "$RESPONSE" ]; then
           # Extract ETag from headers - GitHub sends it with quotes like: etag: "abc123" or W/"abc123"
           RAW_ETAG=$(grep -i '^etag:' /tmp/headers.txt | tr -d '\r' | sed 's/^[eE][tT][aA][gG]: *//' || echo "")
-          echo "Raw ETag from header: [$RAW_ETAG]"
           # Remove W/ prefix if present, then remove all double quotes
           ETAG=$(echo "$RAW_ETAG" | sed 's/^W\///' | tr -d '"')
-          echo "Cleaned ETag: [$ETAG]"
           
           # Calculate expires_at as Unix timestamp + 3600 seconds (1 hour)
           # serde serializes SystemTime as {"secs_since_epoch": N, "nanos_since_epoch": N}
@@ -297,15 +292,10 @@ runs:
           else
             ETAG_JSON="null"
           fi
-          echo "ETag JSON value: $ETAG_JSON"
           
           # Create the cached release JSON in rv's expected format
           echo "{\"expires_at\":{\"secs_since_epoch\":${EXPIRES_SECS},\"nanos_since_epoch\":0},\"etag\":${ETAG_JSON},\"release\":${RESPONSE}}" > "$CACHE_FILE"
-          echo "Pre-seeded rv releases cache at $CACHE_FILE"
-          echo "=== Cache file content (first 500 chars) ==="
-          head -c 500 "$CACHE_FILE"
-          echo ""
-          echo "=== End cache file content ==="
+          echo "Pre-seeded rv releases cache"
         else
           echo "::warning::Could not pre-fetch releases list, rv will fetch directly"
         fi
@@ -318,10 +308,6 @@ runs:
           
           if ~/.local/bin/rv ruby install "$RUBY_VERSION"; then
             echo "Ruby $RUBY_VERSION installed successfully on attempt $RETRY_COUNT"
-            echo "=== Cache file content after successful install (first 500 chars) ==="
-            head -c 500 "$CACHE_FILE" 2>/dev/null || echo "(cache file not found)"
-            echo ""
-            echo "=== End cache file content ==="
             exit 0
           fi
 
@@ -332,10 +318,6 @@ runs:
           fi
         done
 
-        echo "=== Cache file content after all retries failed (first 500 chars) ==="
-        head -c 500 "$CACHE_FILE" 2>/dev/null || echo "(cache file not found)"
-        echo ""
-        echo "=== End cache file content ==="
         echo "::error::Failed to install Ruby $RUBY_VERSION after $MAX_RETRIES attempts"
         exit 1
 
@@ -569,13 +551,8 @@ runs:
       shell: bash
       run: |
         VERSION="${{ steps.ore-version.outputs.version }}"
-        BINARY_NAME="ore-${{ steps.platform.outputs.os }}-${{ steps.platform.outputs.arch }}"
-        DOWNLOAD_URL="https://github.com/contriboss/ore-light/releases/download/v${VERSION}/${BINARY_NAME}"
-
-        echo "Downloading ore from: $DOWNLOAD_URL"
-        curl -fsSL "$DOWNLOAD_URL" -o ~/.local/bin/ore
-        chmod +x ~/.local/bin/ore
-
+        echo "Installing ore $VERSION..."
+        curl -fsSL https://raw.githubusercontent.com/contriboss/ore-light/master/scripts/install.sh | bash -s -- --version "$VERSION"
         echo "Installed ore $VERSION"
 
     - name: Generate gem cache key
