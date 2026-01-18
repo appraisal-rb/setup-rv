@@ -340,7 +340,7 @@ The [MIT License][📄license-ref] covers this software.
 See [LICENSE](LICENSE.txt) for details, but note the following:
 
 1. The terms of the MIT License let you use and share this software for noncommercial purposes and in small business for free.
-2. The MIT license allows selling copies of the software for a fee, and I have chosen to do this for big businesses.
+2. The MIT License allows selling copies of the software for a fee, and I have chosen to do this for big businesses.
 3. Paid licenses for [big businesses](#big-business) are available on fair, reasonable, and nondiscriminatory terms.
 4. To be clear, [big businesses](#big-business) don't have to pay the fee, as this project exists under the _standard_ MIT license.
 5. So, anyone can use the software for free in _any_ and _all_ cases... But
