@@ -398,8 +398,8 @@ You may use the software for the benefit of your company:
 
 $0.25 USD per employee per year for qualifying "[Big Business](#big-business)" commercial use, as defined above.
 If you're interested in licensing `setup-ruby-flash` for your business,
-contact [peter@9thbit.net](mailto:peter@9thbit.net),
-or join the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].
+please contact [peter@9thbit.net](mailto:peter@9thbit.net),
+and join the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].
 
 > 40 employees = $10 USD per year
 
@@ -408,7 +408,7 @@ and [Contriboss](https://github.com/contriboss), as this project would not exist
 
 #### How to Request
 
-Request a fair commercial license at [peter@9thbit.net](mailto:peter@9thbit.net) _and_ on the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].  If both of your contact attempts fail to elicit a response within the time period allotted in [Big Business](#big-business) the licensor will consider that equivalent to a fair commercial license under [Big Business](#big-business).
+Request a fair commercial license by sending an email to [peter@9thbit.net](mailto:peter@9thbit.net) _and_ messaging the `#org-appraisal-rb` channel on the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].  If both of your contact attempts fail to elicit a response within the time period allotted in [Big Business](#big-business) the licensor will consider that equivalent to a fair commercial license under [Big Business](#big-business).
 
 # 🤑 A request for help
 
