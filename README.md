@@ -311,7 +311,7 @@ setup-ruby-flash is designed to be a near drop-in replacement for `ruby/setup-ru
 
 ### ore
 
-[ore](https://github.com/contriboss/ore-light) is a fast gem installer written in Go. It's Bundler-compatible but performs downloads significantly faster using Go's concurrency features. Use `bundle exec` to run gem commands after ore installs your gems.
+[ore](https://github.com/contriboss/ore-light) is a fast gem installer written in Go. It's Bundler-compatible but performs downloads significantly faster using Go's concurrency features. Use `bundle exec` to run gem commands after ore installs your gems. Created by [@seuros](https://github.com/seuros), a long time Rubyist, and prolific [writer](https://www.seuros.com/blog/rubygems-coup-when-parasites-take-the-host/).
 
 ## Development
 
@@ -335,7 +335,132 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/apprai
 
 ## License
 
-This project is available as open source under the terms of the [MIT License](LICENSE).
+The [MIT License][📄license-ref] covers this software.
+
+See [LICENSE](LICENSE.txt) for details, but note the following:
+
+1. The terms of the MIT License let you use and share this software for all purposes, commercial, and non-commercial, for free.
+2. However, the MIT License allows selling copies of the software for a fee, and I have chosen to do this for [big businesses](#big-business), as an ethical matter, not a legal matter.
+3. Paid (optional) licenses for [big businesses](#big-business) are available on fair, reasonable, and nondiscriminatory terms.
+4. So, anyone can use the software for free in _any_ and _all_ cases... But to quote the MIT License itself,
+
+> Permission is hereby granted, free of charge, to any person ..., to deal
+> in the Software without restriction, including without limitation the rights
+> to ... sell copies of the Software
+
+Open source will die without commercial support, so I am letting you know when and what **you should pay**
+as an ethical matter, not as a legal matter.
+
+<details>
+    <summary>Definitions of Terms (What is a Big Business?)</summary>
+
+The purpose of these definitions is to explain when I am asking you, as an ethical matter (not a legal one),
+to consider purchasing a commercial license.
+
+These definitions are inspired by the [Big Time Public License version 2.0.2](https://bigtimelicense.com/versions/2.0.2) and
+are provided solely for these voluntary ethical guidelines. They do not modify or limit the MIT License that legally governs this project.
+
+### Noncommercial Purposes
+
+You may use the software for any noncommercial purpose.
+
+### Personal Uses
+
+Personal use for research, experiment, and testing for the benefit of public knowledge, personal study, private entertainment, hobby projects, amateur pursuits, or religious observance, without any anticipated commercial application, count as use for noncommercial purposes.
+
+### Noncommercial Organizations
+
+Use by any charitable organization, educational institution, public research organization, public safety or health organization, environmental protection organization, or government institution counts as use for noncommercial purposes, regardless of the source of funding or obligations resulting from the funding.
+
+### Small Business
+
+You may use the software for the benefit of your company if it meets all these criteria:
+
+1.  had fewer than 20 total individuals working as employees and independent contractors at all times during the last tax year
+
+2.  earned less than $1,000,000 total revenue in the last tax year
+
+3.  received less than $1,000,000 total debt, equity, and other investment in the last five tax years, counting investment in predecessor companies that reorganized into, merged with, or spun out your company
+
+All dollar figures are United States dollars as of 2019.  Adjust them for inflation according to the United States Bureau of Labor Statistics' consumer price index for all urban consumers, United States city average, for all items, not seasonally adjusted, with 1982–1984=100 reference base.
+
+### Big Business
+
+You may use the software for the benefit of your company:
+
+1.  for 128 days after your company stops qualifying under [Small Business](#small-business)
+
+2.  indefinitely, if the licensor or their legal successor does not offer fair, reasonable, and nondiscriminatory terms for a commercial license for the software within 32 days of [written request](#how-to-request) and negotiate in good faith to conclude a deal
+
+</details>
+
+### Paid licenses
+
+$0.25 USD per employee per year for qualifying "[Big Business](#big-business)" commercial use, as defined above.
+If you're interested in licensing `setup-ruby-flash` for your business,
+contact [peter@9thbit.net](mailto:peter@9thbit.net),
+or join the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].
+
+> 40 employees = $10 USD per year
+
+Note: You should also donate to [Spinel Cooperative](https://github.com/spinel-coop)
+and [Contriboss](https://github.com/contriboss), as this project would not exist without them.
+
+#### How to Request
+
+Request a fair commercial license at [peter@9thbit.net](mailto:peter@9thbit.net) _and_ on the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].  If both of your contact attempts fail to elicit a response within the time period allotted in [Big Business](#big-business) the licensor will consider that equivalent to a fair commercial license under [Big Business](#big-business).
+
+# 🤑 A request for help
+
+Maintainers have teeth and need to pay their dentists.
+After getting laid off in an RIF in March, and encountering difficulty finding a new one,
+I began spending most of my time building open source tools.
+I'm hoping to be able to pay for my kids' health insurance this month,
+so if you value the work I am doing, I need your support.
+Please consider sponsoring me or the project.
+
+To join the community or get help 👇️ Join the Discord.
+
+[![Live Chat on Discord][✉️discord-invite-img-ftb]][✉️discord-invite]
+
+To say "thanks!" ☝️ Join the Discord or 👇️ send money.
+
+[![Sponsor appraisal-rb/ast-merge on Open Source Collective][🖇osc-all-bottom-img]][🖇osc] 💌 [![Sponsor me on GitHub Sponsors][🖇sponsor-bottom-img]][🖇sponsor] 💌 [![Sponsor me on Liberapay][⛳liberapay-bottom-img]][⛳liberapay] 💌 [![Donate on PayPal][🖇paypal-bottom-img]][🖇paypal]
+
+[⛳liberapay-img]: https://img.shields.io/liberapay/goal/pboling.svg?logo=liberapay&color=a51611&style=flat
+[⛳liberapay]: https://liberapay.com/pboling/donate
+[🖇osc-backers]: https://opencollective.com/appraisal-rb#backer
+[🖇osc-backers-i]: https://opencollective.com/appraisal-rb/backers/badge.svg?style=flat
+[🖇osc-sponsors]: https://opencollective.com/appraisal-rb#sponsor
+[🖇osc-sponsors-i]: https://opencollective.com/appraisal-rb/sponsors/badge.svg?style=flat
+[🖇sponsor-img]: https://img.shields.io/badge/Sponsor_Me!-pboling.svg?style=social&logo=github
+[🖇sponsor]: https://github.com/sponsors/pboling
+[🖇polar-img]: https://img.shields.io/badge/polar-donate-a51611.svg?style=flat
+[🖇polar]: https://polar.sh/pboling
+[🖇kofi-img]: https://img.shields.io/badge/ko--fi-%E2%9C%93-a51611.svg?style=flat
+[🖇kofi]: https://ko-fi.com/O5O86SNP4
+[🖇patreon-img]: https://img.shields.io/badge/patreon-donate-a51611.svg?style=flat
+[🖇patreon]: https://patreon.com/galtzo
+[🖇buyme-small-img]: https://img.shields.io/badge/buy_me_a_coffee-%E2%9C%93-a51611.svg?style=flat
+[🖇buyme]: https://www.buymeacoffee.com/pboling
+[🖇paypal-img]: https://img.shields.io/badge/donate-paypal-a51611.svg?style=flat&logo=paypal
+[🖇paypal]: https://www.paypal.com/paypalme/peterboling
+[✉️discord-invite]: https://discord.gg/3qme4XHNKN
+[✉️discord-invite-img]: https://img.shields.io/discord/1373797679469170758?style=flat
+[⛳liberapay-bottom-img]: https://img.shields.io/liberapay/goal/pboling.svg?style=for-the-badge&logo=liberapay&color=a51611
+[🖇osc-all-img]: https://img.shields.io/opencollective/all/appraisal-rb
+[🖇osc-sponsors-img]: https://img.shields.io/opencollective/sponsors/appraisal-rb
+[🖇osc-backers-img]: https://img.shields.io/opencollective/backers/appraisal-rb
+[🖇osc-all-bottom-img]: https://img.shields.io/opencollective/all/appraisal-rb?style=for-the-badge
+[🖇osc-sponsors-bottom-img]: https://img.shields.io/opencollective/sponsors/appraisal-rb?style=for-the-badge
+[🖇osc-backers-bottom-img]: https://img.shields.io/opencollective/backers/appraisal-rb?style=for-the-badge
+[🖇osc]: https://opencollective.com/appraisal-rb
+[🖇sponsor-bottom-img]: https://img.shields.io/badge/Sponsor_Me!-pboling-blue?style=for-the-badge&logo=github
+[🖇buyme-img]: https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20latte&emoji=&slug=pboling&button_colour=FFDD00&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=ffffff
+[🖇paypal-bottom-img]: https://img.shields.io/badge/donate-paypal-a51611.svg?style=for-the-badge&logo=paypal&color=0A0A0A
+[🖇floss-funding.dev]: https://floss-funding.dev
+[🖇floss-funding-gem]: https://github.com/galtzo-floss/floss_funding
+[✉️discord-invite-img-ftb]: https://img.shields.io/discord/1373797679469170758?style=for-the-badge
 
 ## Acknowledgements
 
