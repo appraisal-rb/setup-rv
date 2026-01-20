@@ -113,6 +113,7 @@ A _fast_ GitHub Action for fast Ruby environment setup using [rv](https://github
 ### Using Version Files
 
 When `ruby-version` is set to `default` (the default), setup-ruby-flash reads from:
+
 - `.ruby-version`
 - `.tool-versions` (asdf format)
 - `mise.toml`
@@ -307,11 +308,15 @@ setup-ruby-flash is designed to be a near drop-in replacement for `ruby/setup-ru
 
 ### rv
 
-[rv](https://github.com/spinel-coop/rv) is an extremely fast Ruby version manager written in Rust. It downloads prebuilt Ruby binaries, eliminating the need for compilation. Created by [@indirect](https://github.com/indirect), long-time project lead for Bundler and RubyGems.
+[rv][rv] is an extremely fast Ruby version manager written in Rust. It downloads prebuilt Ruby binaries, eliminating the need for compilation. Created by [@indirect](https://github.com/indirect), long-time project lead for Bundler and RubyGems.
+
+[rv]: https://github.com/spinel-coop/rv
 
 ### ore
 
-[ore](https://github.com/contriboss/ore-light) is a fast gem installer written in Go. It's Bundler-compatible but performs downloads significantly faster using Go's concurrency features. Use `bundle exec` to run gem commands after ore installs your gems. Created by [@seuros](https://github.com/seuros), a long time Rubyist, and prolific [writer](https://www.seuros.com/blog/rubygems-coup-when-parasites-take-the-host/).
+[ore][ore] is a fast gem installer written in Go. It's Bundler-compatible but performs downloads significantly faster using Go's concurrency features. Use `bundle exec` to run gem commands after ore installs your gems. Created by [@seuros](https://github.com/seuros), a long time Rubyist, and prolific [writer](https://www.seuros.com/blog/rubygems-coup-when-parasites-take-the-host/).
+
+[ore]: https://github.com/contriboss/ore-light
 
 ## Development
 
@@ -340,8 +345,8 @@ The [MIT License][📄license-ref] covers this software.
 See [LICENSE](LICENSE.txt) for details, but note the following:
 
 1. The terms of the MIT License let you use and share this software for all purposes, commercial, and non-commercial, for free.
-2. However, the MIT License allows selling copies of the software for a fee, and I have chosen to do this for [big businesses](#big-business), as an ethical matter, not a legal matter.
-3. Paid (optional) licenses for [big businesses](#big-business) are available on fair, reasonable, and nondiscriminatory terms.
+2. However, the MIT License allows selling copies of the software for a fee, and I have chosen to do this for [big businesses][big-business], as an ethical matter, not a legal matter.
+3. Paid (optional) licenses for [big businesses][big-business] are available on fair, reasonable, and nondiscriminatory terms.
 4. So, anyone can use the software for free in _any_ and _all_ cases... But to quote the MIT License itself,
 
 > Permission is hereby granted, free of charge, to any person ..., to deal
@@ -388,27 +393,30 @@ All dollar figures are United States dollars as of 2019.  Adjust them for inflat
 
 You may use the software for the benefit of your company:
 
-1.  for 128 days after your company stops qualifying under [Small Business](#small-business)
+1.  for 128 days after your company stops qualifying under [Small Business][small-business]
 
 2.  indefinitely, if the licensor or their legal successor does not offer fair, reasonable, and nondiscriminatory terms for a commercial license for the software within 32 days of [written request](#how-to-request) and negotiate in good faith to conclude a deal
 
 </details>
 
+[big-business]: https://bigtimelicense.com/versions/2.0.2#big-business
+[small-business]: https://bigtimelicense.com/versions/2.0.2#small-business
+
 ### Paid licenses
 
-$0.25 USD per employee per year for qualifying "[Big Business](#big-business)" commercial use, as defined above.
+$0.25 USD per employee per year for qualifying "[Big Business][big-business]" commercial use, as defined above.
 If you're interested in licensing `setup-ruby-flash` for your business,
 please contact [peter@9thbit.net](mailto:peter@9thbit.net),
 and join the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].
 
 > 40 employees = $10 USD per year
 
-Note: You should also donate to [Spinel Cooperative](https://github.com/spinel-coop)
-and [Contriboss](https://github.com/contriboss), as this project would not exist without them.
+Note: You should also donate to [rv][rv] / [Spinel Cooperative](https://github.com/spinel-coop)
+and [ore][ore] / [Contriboss](https://github.com/contriboss), as this project would not exist without them.
 
 #### How to Request
 
-Request a fair commercial license by sending an email to [peter@9thbit.net](mailto:peter@9thbit.net) _and_ messaging the `#org-appraisal-rb` channel on the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].  If both of your contact attempts fail to elicit a response within the time period allotted in [Big Business](#big-business) the licensor will consider that equivalent to a fair commercial license under [Big Business](#big-business).
+Request a fair commercial license by sending an email to [peter@9thbit.net](mailto:peter@9thbit.net) _and_ messaging the `#org-appraisal-rb` channel on the Official Discord 👉️ [![Live Chat on Discord][✉️discord-invite-img]][✉️discord-invite].  If both of your contact attempts fail to elicit a response within the time period allotted in [Big Business][big-business] the licensor will consider that equivalent to a fair commercial license under [Big Business][big-business].
 
 # 🤑 A request for help
 
@@ -464,6 +472,6 @@ To say "thanks!" ☝️ Join the Discord or 👇️ send money.
 
 ## Acknowledgements
 
-- [setup-ruby](https://github.com/ruby/setup-ruby) the venerable mainstay for many years, and inspiration for this project.
-- [rv](https://github.com/spinel-coop/rv) by Spinel Cooperative
-- [ore](https://github.com/contriboss/ore-light) by Contriboss
+- [setup-ruby][setup-ruby] the venerable mainstay for many years, and inspiration for this project.
+- [rv][rv] by Spinel Cooperative
+- [ore][ore] by Contriboss
