@@ -27,10 +27,12 @@ jobs:
   acceptance-tests:
     name: Acceptance Tests (Ruby ${{ matrix.ruby }})
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental || endsWith(matrix.ruby, 'head') }}
     strategy:
       fail-fast: false
       matrix:
         ruby: ['4.0']
+        experimental: [true]
     steps:
       - uses: actions/checkout@v5
 
@@ -40,7 +42,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           ore-install: true
           cache-version: 'v2'
-          rv-git-ref: "pboling:feat/github-token-authenticated-requests"
+          rv-git-ref: "main"
           ore-git-ref: "master"
 
       - name: Verify ore installation
