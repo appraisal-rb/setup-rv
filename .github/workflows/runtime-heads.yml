@@ -30,7 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['ruby-head']
+        ruby: ['4.0']
     steps:
       - uses: actions/checkout@v5
 
