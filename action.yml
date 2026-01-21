@@ -106,6 +106,13 @@ inputs:
     required: false
     default: "3"
 
+  no-document:
+    description: |
+      Skip generating documentation for installed gems (ri/rdoc).
+      Either 'true' or 'false'. Speeds up gem installation significantly.
+    required: false
+    default: "true"
+
   token:
     description: |
       GitHub token for API calls and downloading releases.
@@ -433,9 +440,15 @@ runs:
         CURRENT_VERSION=$(gem --version)
         echo "Current RubyGems version: $CURRENT_VERSION"
 
+        # Set silent flag when no-document is enabled
+        SILENT_FLAG=""
+        if [ "${{ inputs.no-document }}" = "true" ]; then
+          SILENT_FLAG="--silent"
+        fi
+
         if [ "$RUBYGEMS_INPUT" = "latest" ]; then
           echo "Updating RubyGems to latest version..."
-          gem update --system
+          gem update --system $SILENT_FLAG
           NEW_VERSION=$(gem --version)
           echo "Updated RubyGems to: $NEW_VERSION"
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
@@ -443,7 +456,7 @@ runs:
           # Check if requested version is newer than current
           if ruby -e "exit(Gem::Version.new('$RUBYGEMS_INPUT') > Gem::Version.new('$CURRENT_VERSION') ? 0 : 1)" 2>/dev/null; then
             echo "Updating RubyGems to version $RUBYGEMS_INPUT..."
-            gem update --system "$RUBYGEMS_INPUT"
+            gem update --system "$RUBYGEMS_INPUT" $SILENT_FLAG
             echo "version=$RUBYGEMS_INPUT" >> $GITHUB_OUTPUT
           else
             echo "Requested RubyGems version ($RUBYGEMS_INPUT) is not newer than current ($CURRENT_VERSION), skipping update"
@@ -459,6 +472,12 @@ runs:
       run: |
         BUNDLER_INPUT="${{ inputs.bundler }}"
         RUBY_VERSION="${{ steps.setup.outputs.ruby-full-version }}"
+
+        # Set documentation flag based on input
+        DOC_FLAG=""
+        if [ "${{ inputs.no-document }}" = "true" ]; then
+          DOC_FLAG="--no-document"
+        fi
 
         # Helper function to check if a specific bundler version is installed
         is_bundler_installed() {
@@ -521,6 +540,17 @@ runs:
         fi
 
         if [ "$BUNDLER_INPUT" = "latest" ]; then
+          # If RubyGems was updated to latest, it already installed the latest Bundler
+          # (RubyGems and Bundler are always released together)
+          if [ "${{ inputs.rubygems }}" = "latest" ] && [ -n "${{ steps.configure-rubygems.outputs.version }}" ]; then
+            CURRENT_BUNDLER=$(bundle --version 2>/dev/null | awk '{print $NF}' || echo "")
+            if [ -n "$CURRENT_BUNDLER" ]; then
+              echo "Using Bundler $CURRENT_BUNDLER (installed with latest RubyGems)"
+              echo "version=$CURRENT_BUNDLER" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+          
           # Check if we already have a recent bundler
           if [ -n "$CURRENT_BUNDLER" ]; then
             CURRENT_MAJOR="${CURRENT_BUNDLER%%.*}"
@@ -532,15 +562,15 @@ runs:
             fi
           fi
           echo "Installing latest Bundler..."
-          gem install bundler --no-document --force 2>/dev/null || gem install bundler --no-document
+          gem install bundler $DOC_FLAG --force 2>/dev/null || gem install bundler $DOC_FLAG
           INSTALLED_VERSION=$(bundle --version | awk '{print $NF}')
           echo "Installed Bundler: $INSTALLED_VERSION"
           echo "version=$INSTALLED_VERSION" >> $GITHUB_OUTPUT
         elif [ -n "$BUNDLER_VERSION" ]; then
           # Install specific version from Gemfile.lock
           echo "Installing Bundler version $BUNDLER_VERSION..."
-          gem install bundler -v "$BUNDLER_VERSION" --no-document --force 2>/dev/null || \
-            gem install bundler -v "$BUNDLER_VERSION" --no-document
+          gem install bundler -v "$BUNDLER_VERSION" $DOC_FLAG --force 2>/dev/null || \
+            gem install bundler -v "$BUNDLER_VERSION" $DOC_FLAG
           echo "version=$BUNDLER_VERSION" >> $GITHUB_OUTPUT
         elif [[ "$BUNDLER_INPUT" =~ ^[0-9] ]]; then
           # Version number provided - check if already satisfied
@@ -552,11 +582,11 @@ runs:
           echo "Installing Bundler version $BUNDLER_INPUT..."
           if [[ "$BUNDLER_INPUT" =~ ^[0-9]+$ ]]; then
             # Just major version, use ~> constraint
-            gem install bundler -v "~> $BUNDLER_INPUT.0" --no-document --force 2>/dev/null || \
-              gem install bundler -v "~> $BUNDLER_INPUT.0" --no-document
+            gem install bundler -v "~> $BUNDLER_INPUT.0" $DOC_FLAG --force 2>/dev/null || \
+              gem install bundler -v "~> $BUNDLER_INPUT.0" $DOC_FLAG
           else
-            gem install bundler -v "$BUNDLER_INPUT" --no-document --force 2>/dev/null || \
-              gem install bundler -v "$BUNDLER_INPUT" --no-document
+            gem install bundler -v "$BUNDLER_INPUT" $DOC_FLAG --force 2>/dev/null || \
+              gem install bundler -v "$BUNDLER_INPUT" $DOC_FLAG
           fi
           INSTALLED_VERSION=$(bundle --version | awk '{print $NF}')
           echo "version=$INSTALLED_VERSION" >> $GITHUB_OUTPUT
@@ -713,6 +743,11 @@ runs:
         echo "Using Ruby: $(which ruby)"
         echo "Ruby version: $(ruby --version)"
         echo "GEM_HOME: $GEM_HOME"
+
+        # Configure gem to skip documentation if requested
+        if [ "${{ inputs.no-document }}" = "true" ]; then
+          bundle config set --local no-document true
+        fi
 
         # Build ore install command
         INSTALL_CMD="ore install"

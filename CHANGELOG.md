@@ -15,10 +15,18 @@
   - **Performance**: First build 3-5 min (rv) or 1-2 min (ore); cached builds ~1-2 sec
   - See `GIT_REF_FEATURE.md` for comprehensive documentation and examples
 
+- **Documentation Control**: New `no-document` input to control gem documentation generation
+  - Default: `true` (skip documentation for faster installs)
+  - Set to `false` to generate ri/rdoc documentation
+  - Applies to both Bundler gem installations and ore gem installations
+  - Applies `--silent` flag to `gem update --system` commands when enabled
+  - Significantly speeds up gem installation by skipping ri/rdoc generation
+
 ### Changed
 
 - Cache keys now include `build-from-source` flag to prevent collision between git refs and release versions
 - Improved version resolution to handle both release versions and git references
+- **Bundler Installation Optimization**: Skip Bundler installation when `rubygems: latest` is used, as the latest RubyGems includes the latest Bundler (they are always released together)
 
 ### Notes
 
