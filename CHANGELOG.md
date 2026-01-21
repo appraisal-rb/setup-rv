@@ -7,11 +7,12 @@
 - **Build from Source Support**: New `rv-git-ref` and `ore-git-ref` inputs allow building rv and ore from git branches, tags, or commits instead of using release binaries
   - `rv-git-ref`: Build rv from any git reference (requires Rust, automatically installed)
   - `ore-git-ref`: Build ore from any git reference (requires Go 1.24, automatically installed)
+  - **Fork Support**: Use `owner:ref` syntax to build from a fork (e.g., `pboling:feat/github-token-authenticated-requests`)
   - Enables testing unreleased versions without creating formal releases
-  - Supports branches (`main`), tags (`v0.5.0-beta`), and commit SHAs
+  - Supports branches (`main`), tags (`v0.5.0-beta`), commit SHAs, and forks (`owner:branch`)
   - Built binaries are cached by git ref for fast subsequent runs
   - When git ref is set, corresponding version input (`rv-version`, `ore-version`) is ignored
-  - **Use Case**: Test PRs, feature branches, and bug fixes before release
+  - **Use Case**: Test PRs, feature branches, bug fixes, and fork changes before release
   - **Performance**: First build 3-5 min (rv) or 1-2 min (ore); cached builds ~1-2 sec
   - See `GIT_REF_FEATURE.md` for comprehensive documentation and examples
 
@@ -21,6 +22,13 @@
   - Applies to both Bundler gem installations and ore gem installations
   - Applies `--silent` flag to `gem update --system` commands when enabled
   - Significantly speeds up gem installation by skipping ri/rdoc generation
+
+- **rv GitHub API Authentication**: rv now supports authenticated GitHub API requests
+  - Checks `GITHUB_TOKEN` environment variable first (GitHub Actions)
+  - Falls back to `GH_TOKEN` (GitHub CLI and general use)
+  - Significantly reduces rate limiting issues when fetching Ruby releases
+  - Applies to both release list fetching and Ruby tarball downloads from GitHub
+  - No configuration needed - automatically uses token if available
 
 ### Changed
 
@@ -55,4 +63,13 @@ Test rv pre-release:
   with:
     ruby-version: "3.4"
     rv-git-ref: "v0.5.0-beta1" # Build from beta tag
+```
+
+Test changes from your fork:
+
+```yaml
+- uses: appraisal-rb/setup-ruby-flash@v1
+  with:
+    ruby-version: "3.4"
+    rv-git-ref: "pboling:feat/github-token-authenticated-requests" # Build from fork
 ```
