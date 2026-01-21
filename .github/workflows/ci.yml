@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
-        ruby: ['3.2', '3.3', '3.4']
+        ruby: ['3.2', '3.3', '3.4', '4.0']
     steps:
       - uses: actions/checkout@v5
 
@@ -74,7 +74,7 @@ jobs:
       - name: Run setup-ruby-flash with ore
         uses: ./
         with:
-          ruby-version: '3.4'
+          ruby-version: '4.0'
           ore-install: true
           cache-version: 'v2'
 
@@ -94,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.2', '3.3', '3.4']
+        ruby: ['3.2', '3.3', '3.4', '4.0']
     steps:
       - uses: actions/checkout@v5
 
@@ -120,7 +120,7 @@ jobs:
       - name: Run setup-ruby-flash action
         uses: ./
         with:
-          ruby-version: '3.4'
+          ruby-version: '4.0'
           ore-install: true
           cache-version: 'v2'
 
