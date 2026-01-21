@@ -145,6 +145,7 @@ When `ruby-version` is set to `default` (the default), setup-ruby-flash reads fr
 | `skip-extensions`      | Skip building native extensions                                                                                                | `false`               |
 | `without-groups`       | Gem groups to exclude (comma-separated)                                                                                        | `''`                  |
 | `ruby-install-retries` | Number of retry attempts for Ruby installation (with exponential backoff)                                                      | `3`                   |
+| `no-document`          | Skip generating documentation (ri/rdoc) for installed gems. Creates `~/.gemrc` with `gem: --no-document` if file doesn't exist | `true`                |
 | `token`                | GitHub token for API calls                                                                                                     | `${{ github.token }}` |
 
 ## Outputs
@@ -255,6 +256,18 @@ If you experience intermittent failures due to GitHub API rate limiting, you can
   with:
     ruby-version: "3.4"
     ruby-install-retries: "5"
+```
+
+### Enable Documentation Generation
+
+Include documentation (ri/rdoc) for installed gems (default skips documentation for faster installation):
+
+```yaml
+- uses: appraisal-rb/setup-ruby-flash@v1
+  with:
+    ruby-version: "3.4"
+    ore-install: true
+    no-document: false
 ```
 
 ### Building rv or ore from Source
