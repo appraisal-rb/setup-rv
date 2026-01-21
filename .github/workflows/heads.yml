@@ -48,6 +48,7 @@ jobs:
           ruby-version: 'ruby-head'
           ore-install: true
           cache-version: 'v2'
+          rv-git-ref: 'pboling:feat/github-token-authenticated-requests'
 
       - name: Verify Ruby installation
         run: |

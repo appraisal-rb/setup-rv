@@ -41,6 +41,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           cache-version: 'v2'
+          rv-git-ref: 'pboling:feat/github-token-authenticated-requests'
 
       - name: Verify Ruby installation
         run: |
@@ -77,6 +78,7 @@ jobs:
           ruby-version: '4.0'
           ore-install: true
           cache-version: 'v2'
+          rv-git-ref: 'pboling:feat/github-token-authenticated-requests'
 
       - name: Verify ore installation
         run: |
@@ -104,6 +106,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           ore-install: true
           cache-version: 'v2'
+          rv-git-ref: 'pboling:feat/github-token-authenticated-requests'
 
       - name: Run acceptance tests
         env:
@@ -123,6 +126,7 @@ jobs:
           ruby-version: '4.0'
           ore-install: true
           cache-version: 'v2'
+          rv-git-ref: 'pboling:feat/github-token-authenticated-requests'
 
       - name: Run RuboCop
         run: bundle exec rubocop

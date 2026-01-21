@@ -40,7 +40,7 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
           ore-install: true
           cache-version: 'v2'
-          rv-git-ref: "main"
+          rv-git-ref: "pboling:feat/github-token-authenticated-requests"
           ore-git-ref: "master"
 
       - name: Verify ore installation
