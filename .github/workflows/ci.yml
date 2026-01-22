@@ -63,14 +63,14 @@ jobs:
   test-action-with-ore-pure:
     name: Action + Ore Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      BUNDLE_GEMFILE: TestGemfile
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
-        env:
-          BUNDLE_GEMFILE: TestGemfile
 
       - name: Create test Gemfile (Pure Ruby)
         run: |
@@ -105,14 +105,14 @@ jobs:
   test-action-with-ore-compiled:
     name: Action + Ore Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      BUNDLE_GEMFILE: TestGemfile
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
-        env:
-          BUNDLE_GEMFILE: TestGemfile
 
       - name: Create test Gemfile (Pure Ruby)
         run: |
@@ -195,14 +195,14 @@ jobs:
   test-gfgo-git-ref:
     name: Test gfgo-git-ref (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    env:
+      BUNDLE_GEMFILE: TestGemfile
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v5
-        env:
-          BUNDLE_GEMFILE: TestGemfile
 
       - name: Create test Gemfile
         run: |
