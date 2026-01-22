@@ -7,18 +7,45 @@ task :default do
 end
 
 # External gems that define tasks - add here!
-require 'rspec/core/rake_task'
-require 'rubocop/rake_task'
-require 'kettle/dev'
+begin
+  require 'rspec/core/rake_task'
 
-# Acceptance tests - run AFTER the action has installed Ruby
-# These verify the action worked correctly
-RSpec::Core::RakeTask.new(:acceptance) do |task|
-  task.pattern = 'spec/acceptance/*_spec.rb'
-  task.rspec_opts = '--tag acceptance'
+  # Acceptance tests - run AFTER the action has installed Ruby
+  # These verify the action worked correctly
+  RSpec::Core::RakeTask.new(:acceptance) do |task|
+    task.pattern = 'spec/acceptance/*_spec.rb'
+    task.rspec_opts = '--tag acceptance'
+  end
+rescue LoadError
+  # Insulating for arbitrary Gemfiles in CI that add rake, but not the other gems.
+  desc 'Run specs (stub)'
+  task :spec do
+    # Stub
+  end
+
+  desc 'Run acceptance tests (stub)'
+  task :acceptance do
+    # Stub
+  end
 end
 
-RuboCop::RakeTask.new(:lint)
+begin
+  require 'rubocop/rake_task'
+
+  RuboCop::RakeTask.new(:lint)
+rescue LoadError
+  desc 'Run RuboCop linting (stub)'
+  task :lint do
+    # Stub
+  end
+  # Insulating for arbitrary Gemfiles in CI that add rake, but not the other gems.
+end
+
+begin
+  require 'kettle/dev'
+rescue LoadError
+  # Insulating for arbitrary Gemfiles in CI that add rake, but not the other gems.
+end
 
 desc 'Run all checks (lint + acceptance tests)'
 task ci: %i[lint spec]
