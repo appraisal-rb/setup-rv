@@ -7,6 +7,7 @@ GEM
       thor (>= 0.14)
     ast (2.4.3)
     backports (3.25.3)
+    benchmark (0.5.0)
     delegate (0.6.1)
     diff-lcs (1.6.2)
     diffy (3.4.4)
@@ -144,6 +145,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  benchmark
   kettle-dev (~> 1.2, >= 1.2.4)
   kettle-test (~> 1.0, >= 1.0.7)
   rake (~> 13.0)
@@ -154,6 +156,7 @@ CHECKSUMS
   appraisal2 (3.0.0) sha256=f1b4e742cf8ebef5e9fbb76c416a8c16edfe0727964a5a17b44adfc37b701aed
   ast (2.4.3) sha256=954615157c1d6a382bc27d690d973195e79db7f55e9765ac7c481c60bdb4d383
   backports (3.25.3) sha256=94298d32dc3c40ca15633b54e282780b49e2db0c045f602ea1907e4f63a17235
+  benchmark (0.5.0) sha256=465df122341aedcb81a2a24b4d3bd19b6c67c1530713fd533f3ff034e419236c
   delegate (0.6.1) sha256=54cf946cacfe05b1c23114edd8fbd8d54e9cea7abf36b95130ab53cc88b8f7e4
   diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
   diffy (3.4.4) sha256=79384ab5ca82d0e115b2771f0961e27c164c456074bd2ec46b637ebf7b6e47e3
