@@ -823,7 +823,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin/ore
-        key: setup-ruby-flash-ore-${{ steps.platform.outputs.platform }}-${{ steps.ore-version.outputs.version }}-${{ steps.ore-version.outputs.build-from-source }}-gfgo-${{ inputs.gfgo-git-ref }}
+        key: setup-ruby-flash-ore-${{ steps.platform.outputs.platform }}-ruby-${{ steps.detect-ruby.outputs.version }}-${{ steps.ore-version.outputs.version }}-${{ steps.ore-version.outputs.build-from-source }}-gfgo-${{ inputs.gfgo-git-ref }}
 
     - name: Setup Go toolchain for ore
       if: steps.check-support.outputs.use-fallback != 'true' && (inputs.ore-install == 'true' || inputs.bundler-cache == 'true') && steps.cache-ore.outputs.cache-hit != 'true' && steps.ore-version.outputs.build-from-source == 'true'

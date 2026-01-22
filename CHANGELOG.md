@@ -78,6 +78,11 @@
 ### Fixed
 
 - **Version Detection**: Ruby versions like `head`, `3.5`, and other unsupported versions now correctly fall back to ruby/setup-ruby instead of incorrectly attempting to use rv
+- **Ore Cache Key**: Added Ruby version to ore binary cache key to prevent using ore built with wrong Ruby version
+  - Ore embeds Ruby version information at build time (for `--version` output)
+  - Cache key now includes Ruby version to ensure ore is rebuilt when Ruby version changes
+  - Fixes issue where ore built with Ruby 3.4.8 was being used with Ruby 4.0.1
+- **Grep Exit Code**: Fixed grep command failing on non-numeric Ruby versions (jruby, head, etc.) by adding `|| true`
 
 ### Notes
 
