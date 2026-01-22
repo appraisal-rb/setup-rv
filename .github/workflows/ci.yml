@@ -45,7 +45,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Verify Ruby installation
         run: |
@@ -89,7 +89,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Verify ore installation
         run: |
@@ -131,7 +131,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Verify ore installation
         run: |
@@ -164,7 +164,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Run acceptance tests
         env:
@@ -187,7 +187,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Run RuboCop
         run: bundle exec rubocop
@@ -221,7 +221,7 @@ jobs:
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
           ore-git-ref: 'master'
-          gfgo-git-ref: 'lock'
+          gfgo-git-ref: 'master'
 
       - name: Verify ore installation
         run: |
