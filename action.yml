@@ -143,6 +143,25 @@ inputs:
     required: false
     default: ${{ github.token }}
 
+  use-setup-ruby:
+    description: |
+      Force fallback to ruby/setup-ruby for specific Ruby versions.
+      Use this to benchmark setup-ruby-flash vs setup-ruby for the same version.
+      Accepts the same format as ruby-version in a matrix: ['3.4', '4.0'] or just '3.4'
+      Takes precedence over automatic detection.
+    required: false
+    default: ""
+
+  use-setup-ruby-flash:
+    description: |
+      Force use of setup-ruby-flash for specific Ruby versions.
+      Use this for forward compatibility when rv adds support for new versions.
+      Accepts the same format as ruby-version in a matrix: ['head', 'jruby'] or just 'head'
+      Takes precedence over automatic detection and use-setup-ruby.
+      Warning: Will fail if rv doesn't actually support the version.
+    required: false
+    default: ""
+
 outputs:
   ruby-version:
     description: "The installed Ruby version"
@@ -182,6 +201,7 @@ runs:
       run: |
         RUBY_VERSION="${{ inputs.ruby-version }}"
         USE_FALLBACK="false"
+        OVERRIDE_REASON=""
         
         # Resolve version if 'default'
         if [ "$RUBY_VERSION" = "default" ]; then
@@ -196,20 +216,90 @@ runs:
           RUBY_VERSION="4.0"
         fi
         
-        # Check if this is a non-MRI implementation (jruby, truffleruby, etc.)
-        if [[ "$RUBY_VERSION" =~ ^(jruby|truffleruby|rbx|ree|maglev|mruby|topaz) ]]; then
-          echo "::notice::Ruby implementation '$RUBY_VERSION' is not supported by setup-ruby-flash. Falling back to ruby/setup-ruby."
+        # Parse use-setup-ruby-flash override (highest priority)
+        USE_FLASH_LIST='${{ inputs.use-setup-ruby-flash }}'
+        if [ -n "$USE_FLASH_LIST" ]; then
+          # Handle single value (e.g., "3.4") or array (e.g., ['3.4', '4.0'])
+          # Check if current version matches (with quotes or without)
+          if [ "$USE_FLASH_LIST" = "$RUBY_VERSION" ] || \
+             echo "$USE_FLASH_LIST" | grep -qE "(^|[^a-z0-9.])$RUBY_VERSION([^a-z0-9.]|$)"; then
+            echo "::notice::Ruby version '$RUBY_VERSION' forced to use setup-ruby-flash via use-setup-ruby-flash input."
+            USE_FALLBACK="false"
+            OVERRIDE_REASON="forced-flash"
+          fi
+        fi
+        
+        # Parse use-setup-ruby override (second priority, only if not forced to flash)
+        if [ "$OVERRIDE_REASON" != "forced-flash" ]; then
+          USE_RUBY_LIST='${{ inputs.use-setup-ruby }}'
+          if [ -n "$USE_RUBY_LIST" ]; then
+            # Handle single value or array format
+            if [ "$USE_RUBY_LIST" = "$RUBY_VERSION" ] || \
+               echo "$USE_RUBY_LIST" | grep -qE "(^|[^a-z0-9.])$RUBY_VERSION([^a-z0-9.]|$)"; then
+              echo "::notice::Ruby version '$RUBY_VERSION' forced to use ruby/setup-ruby via use-setup-ruby input."
+              USE_FALLBACK="true"
+              OVERRIDE_REASON="forced-ruby"
+            fi
+          fi
+        fi
+        
+        # Automatic detection (only if no override)
+        if [ -z "$OVERRIDE_REASON" ]; then
+          # Allowlists of supported Ruby versions (update these as rv adds support)
+          # Numeric MRI versions (major.minor format)
+          SUPPORTED_NUMERIC_VERSIONS="3.2 3.3 3.4 4.0"
+          # Special versions and alternative implementations (e.g., head, jruby, truffleruby)
+          SUPPORTED_SPECIAL_VERSIONS=""  # Empty for now, add versions as rv supports them (e.g., "head jruby truffleruby")
+          
+          # Default to fallback unless version is in allowlist
           USE_FALLBACK="true"
-        # Allowlist: ONLY support MRI Ruby 3.2, 3.3, 3.4, 4.0 (with or without patch versions)
-        elif [[ "$RUBY_VERSION" =~ ^3\.2($|\.) ]] || [[ "$RUBY_VERSION" =~ ^3\.3($|\.) ]] || [[ "$RUBY_VERSION" =~ ^3\.4($|\.) ]] || [[ "$RUBY_VERSION" =~ ^4\.0($|\.) ]]; then
-          echo "Ruby version '$RUBY_VERSION' is supported by setup-ruby-flash."
-        else
-          echo "::notice::Ruby version '$RUBY_VERSION' is not supported by setup-ruby-flash (only 3.2, 3.3, 3.4, 4.0 supported). Falling back to ruby/setup-ruby."
-          USE_FALLBACK="true"
+          
+          # First check if it's a prefix match in special versions (head, jruby-*, truffleruby-*, etc.)
+          if [ -n "$SUPPORTED_SPECIAL_VERSIONS" ]; then
+            for allowed_version in $SUPPORTED_SPECIAL_VERSIONS; do
+              if [[ "$RUBY_VERSION" == $allowed_version* ]]; then
+                echo "Ruby version '$RUBY_VERSION' is supported by setup-ruby-flash."
+                USE_FALLBACK="false"
+                break
+              fi
+            done
+          fi
+          
+          # If not found in special versions, check numeric versions
+          if [ "$USE_FALLBACK" = "true" ]; then
+            # Extract major.minor version (e.g., "3.4.1" -> "3.4")
+            VERSION_PREFIX=$(echo "$RUBY_VERSION" | grep -oE '^[0-9]+\.[0-9]+')
+            
+            if [ -n "$VERSION_PREFIX" ]; then
+              for allowed_version in $SUPPORTED_NUMERIC_VERSIONS; do
+                if [ "$VERSION_PREFIX" = "$allowed_version" ]; then
+                  echo "Ruby version '$RUBY_VERSION' is supported by setup-ruby-flash."
+                  USE_FALLBACK="false"
+                  break
+                fi
+              done
+            fi
+          fi
+          
+          # If still using fallback, show appropriate message
+          if [ "$USE_FALLBACK" = "true" ]; then
+            ALL_SUPPORTED="$SUPPORTED_NUMERIC_VERSIONS"
+            if [ -n "$SUPPORTED_SPECIAL_VERSIONS" ]; then
+              ALL_SUPPORTED="$ALL_SUPPORTED $SUPPORTED_SPECIAL_VERSIONS"
+            fi
+            echo "::notice::Ruby version '$RUBY_VERSION' is not supported by setup-ruby-flash (only$ALL_SUPPORTED supported). Falling back to ruby/setup-ruby."
+          fi
         fi
         
         echo "use-fallback=$USE_FALLBACK" >> $GITHUB_OUTPUT
         echo "ruby-version=$RUBY_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Start fallback timer
+      if: steps.check-support.outputs.use-fallback == 'true'
+      id: fallback-start
+      shell: bash
+      run: |
+        echo "start-time=$(date +%s)" >> $GITHUB_OUTPUT
 
     - name: Setup Ruby with ruby/setup-ruby (fallback)
       if: steps.check-support.outputs.use-fallback == 'true'
@@ -221,6 +311,17 @@ runs:
         bundler-cache: ${{ inputs.bundler-cache == 'true' || inputs.ore-install == 'true' }}
         working-directory: ${{ inputs.working-directory }}
         cache-version: ${{ inputs.cache-version }}
+
+    - name: End fallback timer
+      if: steps.check-support.outputs.use-fallback == 'true'
+      id: fallback-end
+      shell: bash
+      run: |
+        END_TIME=$(date +%s)
+        START_TIME=${{ steps.fallback-start.outputs.start-time }}
+        ELAPSED=$((END_TIME - START_TIME))
+        echo "elapsed=$ELAPSED" >> $GITHUB_OUTPUT
+        echo "setup-ruby fallback completed in ${ELAPSED}s"
 
     - name: Validate platform
       if: steps.check-support.outputs.use-fallback != 'true'
@@ -291,10 +392,12 @@ runs:
 
     - name: Build rv from source
       if: steps.check-support.outputs.use-fallback != 'true' && steps.cache-rv.outputs.cache-hit != 'true' && steps.rv-version.outputs.build-from-source == 'true'
+      id: build-rv
       shell: bash
       run: |
         GIT_REF="${{ inputs.rv-git-ref }}"
         echo "Building rv from source (git ref: $GIT_REF)..."
+        START_TIME=$(date +%s)
 
         # Parse fork syntax: owner:ref or just ref
         if [[ "$GIT_REF" == *":"* ]]; then
@@ -328,7 +431,10 @@ runs:
         cp target/release/rv ~/.local/bin/rv
         chmod +x ~/.local/bin/rv
 
-        echo "Built and installed rv from $GIT_REF"
+        END_TIME=$(date +%s)
+        ELAPSED=$((END_TIME - START_TIME))
+        echo "build-time=$ELAPSED" >> $GITHUB_OUTPUT
+        echo "Built and installed rv from $GIT_REF in ${ELAPSED}s"
         ~/.local/bin/rv --version
 
         # Cleanup build directory
@@ -336,11 +442,13 @@ runs:
 
     - name: Install rv from release
       if: steps.check-support.outputs.use-fallback != 'true' && steps.cache-rv.outputs.cache-hit != 'true' && steps.rv-version.outputs.build-from-source == 'false'
+      id: install-rv
       shell: bash
       run: |
         VERSION="${{ steps.rv-version.outputs.version }}"
         OS="${{ steps.platform.outputs.os }}"
         ARCH="${{ steps.platform.outputs.arch }}"
+        START_TIME=$(date +%s)
 
         # Map to rv platform names
         case "$OS-$ARCH" in
@@ -358,7 +466,10 @@ runs:
         curl -fsSL "$DOWNLOAD_URL" | tar -xJ --strip-components=1 -C ~/.local/bin "rv-${RV_PLATFORM}/rv"
         chmod +x ~/.local/bin/rv
 
-        echo "Installed rv $VERSION"
+        END_TIME=$(date +%s)
+        ELAPSED=$((END_TIME - START_TIME))
+        echo "install-time=$ELAPSED" >> $GITHUB_OUTPUT
+        echo "Installed rv $VERSION in ${ELAPSED}s"
 
     - name: Add rv to PATH
       if: steps.check-support.outputs.use-fallback != 'true'
@@ -408,6 +519,7 @@ runs:
 
     - name: Install Ruby
       if: steps.check-support.outputs.use-fallback != 'true' && steps.cache-ruby.outputs.cache-hit != 'true'
+      id: install-ruby
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -416,48 +528,10 @@ runs:
         MAX_RETRIES=${{ inputs.ruby-install-retries }}
         RETRY_COUNT=0
         BACKOFF=5
+        START_TIME=$(date +%s)
 
         # Pre-seed rv's releases cache with authenticated API call to avoid rate limiting
-        # rv uses etcetera for cache paths: ~/Library/Caches/rv on macOS, ~/.cache/rv on Linux
-        if [ "${{ steps.platform.outputs.os }}" = "darwin" ]; then
-          RV_CACHE_DIR="${HOME}/Library/Caches/rv/ruby-v0/releases"
-        else
-          RV_CACHE_DIR="${HOME}/.cache/rv/ruby-v0/releases"
-        fi
-        mkdir -p "$RV_CACHE_DIR"
-        CACHE_FILE="$RV_CACHE_DIR/available_rubies.json"
-
-        echo "Fetching Ruby releases list with authenticated API call..."
-        RESPONSE=$(curl -fsSL \
-          -H "Authorization: Bearer $GITHUB_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          -H "User-Agent: rv-cli" \
-          -D /tmp/headers.txt \
-          "https://api.github.com/repos/spinel-coop/rv-ruby/releases/latest" 2>/dev/null) || true
-
-        if [ -n "$RESPONSE" ]; then
-          # Extract ETag from headers - GitHub sends it with quotes like: etag: "abc123" or W/"abc123"
-          RAW_ETAG=$(grep -i '^etag:' /tmp/headers.txt | tr -d '\r' | sed 's/^[eE][tT][aA][gG]: *//' || echo "")
-          # Remove W/ prefix if present, then remove all double quotes
-          ETAG=$(echo "$RAW_ETAG" | sed 's/^W\///' | tr -d '"')
-          
-          # Calculate expires_at as Unix timestamp + 3600 seconds (1 hour)
-          # serde serializes SystemTime as {"secs_since_epoch": N, "nanos_since_epoch": N}
-          EXPIRES_SECS=$(($(date +%s) + 3600))
-          
-          # Format ETag as JSON string or null
-          if [ -n "$ETAG" ]; then
-            ETAG_JSON="\"$ETAG\""
-          else
-            ETAG_JSON="null"
-          fi
-          
-          # Create the cached release JSON in rv's expected format
-          echo "{\"expires_at\":{\"secs_since_epoch\":${EXPIRES_SECS},\"nanos_since_epoch\":0},\"etag\":${ETAG_JSON},\"release\":${RESPONSE}}" > "$CACHE_FILE"
-          echo "Pre-seeded rv releases cache"
-        else
-          echo "::warning::Could not pre-fetch releases list, rv will fetch directly"
-        fi
+        # ...existing code...
 
         echo "Installing Ruby $RUBY_VERSION via rv (max retries: $MAX_RETRIES)..."
 
@@ -466,7 +540,10 @@ runs:
           echo "Attempt $RETRY_COUNT of $MAX_RETRIES..."
           
           if ~/.local/bin/rv ruby install "$RUBY_VERSION"; then
-            echo "Ruby $RUBY_VERSION installed successfully on attempt $RETRY_COUNT"
+            END_TIME=$(date +%s)
+            ELAPSED=$((END_TIME - START_TIME))
+            echo "install-time=$ELAPSED" >> $GITHUB_OUTPUT
+            echo "Ruby $RUBY_VERSION installed successfully on attempt $RETRY_COUNT in ${ELAPSED}s"
             exit 0
           fi
 
@@ -704,6 +781,17 @@ runs:
         echo "| rv Version | ${{ steps.rv-version.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Platform | ${{ steps.platform.outputs.platform }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Ruby Cache Hit | ${{ steps.cache-ruby.outputs.cache-hit }} |" >> $GITHUB_STEP_SUMMARY
+        
+        # Add timing information if available
+        if [ -n "${{ steps.build-rv.outputs.build-time }}" ]; then
+          echo "| rv Build Time | ${{ steps.build-rv.outputs.build-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.install-rv.outputs.install-time }}" ]; then
+          echo "| rv Install Time | ${{ steps.install-rv.outputs.install-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.install-ruby.outputs.install-time }}" ]; then
+          echo "| Ruby Install Time | ${{ steps.install-ruby.outputs.install-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
 
     - name: Resolve ore version
       if: steps.check-support.outputs.use-fallback != 'true' && (inputs.ore-install == 'true' || inputs.bundler-cache == 'true')
@@ -744,11 +832,13 @@ runs:
 
     - name: Build ore from source
       if: steps.check-support.outputs.use-fallback != 'true' && (inputs.ore-install == 'true' || inputs.bundler-cache == 'true') && steps.cache-ore.outputs.cache-hit != 'true' && steps.ore-version.outputs.build-from-source == 'true'
+      id: build-ore
       shell: bash
       run: |
         GIT_REF="${{ inputs.ore-git-ref }}"
         GFGO_GIT_REF="${{ inputs.gfgo-git-ref }}"
         echo "Building ore from source (git ref: $GIT_REF)..."
+        ORE_START_TIME=$(date +%s)
 
         # Parse fork syntax: owner:ref or just ref
         if [[ "$GIT_REF" == *":"* ]]; then
@@ -762,7 +852,7 @@ runs:
           echo "Using upstream: contriboss/ore-light (ref: $REF)"
         fi
 
-        # Clone ore repository (shallow clone for speed)
+        # Clone repository (shallow clone for speed)
         git clone --depth 1 "$REPO_URL" /tmp/ore-build
         cd /tmp/ore-build
         # Fetch the specific ref if shallow clone doesn't have it
@@ -777,6 +867,7 @@ runs:
         # If gfgo-git-ref is set, checkout gemfile-go and create go.work
         if [[ -n "$GFGO_GIT_REF" ]]; then
           echo "Building with gemfile-go from source (git ref: $GFGO_GIT_REF)..."
+          GFGO_START_TIME=$(date +%s)
           
           # Parse gemfile-go fork syntax
           if [[ "$GFGO_GIT_REF" == *":"* ]]; then
@@ -809,6 +900,11 @@ runs:
           go work use /tmp/gemfile-go-build
           echo "go.work created successfully"
           cat go.work
+          
+          GFGO_END_TIME=$(date +%s)
+          GFGO_ELAPSED=$((GFGO_END_TIME - GFGO_START_TIME))
+          echo "gfgo-build-time=$GFGO_ELAPSED" >> $GITHUB_OUTPUT
+          echo "gemfile-go setup completed in ${GFGO_ELAPSED}s"
         fi
 
         # Build ore using Go (will use go.work if it exists)
@@ -820,7 +916,11 @@ runs:
         cp ore ~/.local/bin/ore
         chmod +x ~/.local/bin/ore
 
-        echo "Built and installed ore from $GIT_REF"
+        ORE_END_TIME=$(date +%s)
+        ORE_ELAPSED=$((ORE_END_TIME - ORE_START_TIME))
+        echo "build-time=$ORE_ELAPSED" >> $GITHUB_OUTPUT
+        
+        echo "Built and installed ore from $GIT_REF in ${ORE_ELAPSED}s"
         if [[ -n "$GFGO_GIT_REF" ]]; then
           echo "  with gemfile-go from $GFGO_GIT_REF"
         fi
@@ -942,4 +1042,21 @@ runs:
         echo "| ore Version | ${{ steps.ore-version.outputs.version }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Platform | ${{ steps.platform.outputs.platform }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Gem Cache Hit | ${{ steps.cache-gems.outputs.cache-hit }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Install Time | ${ELAPSED}s |" >> $GITHUB_STEP_SUMMARY
+        
+        # Add timing information
+        if [ -n "${{ steps.build-rv.outputs.build-time }}" ]; then
+          echo "| rv Build Time | ${{ steps.build-rv.outputs.build-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.install-rv.outputs.install-time }}" ]; then
+          echo "| rv Install Time | ${{ steps.install-rv.outputs.install-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.install-ruby.outputs.install-time }}" ]; then
+          echo "| Ruby Install Time | ${{ steps.install-ruby.outputs.install-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.build-ore.outputs.gfgo-build-time }}" ]; then
+          echo "| gemfile-go Build Time | ${{ steps.build-ore.outputs.gfgo-build-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "${{ steps.build-ore.outputs.build-time }}" ]; then
+          echo "| ore Build Time | ${{ steps.build-ore.outputs.build-time }}s |" >> $GITHUB_STEP_SUMMARY
+        fi
+        echo "| Gem Install Time | ${ELAPSED}s |" >> $GITHUB_STEP_SUMMARY

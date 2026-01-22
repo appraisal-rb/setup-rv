@@ -243,7 +243,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: ['3.1', 'jruby', 'truffleruby', '4.0', 'head']
+        ruby: ['3.1', 'jruby-9.4', '4.0', 'head']
     steps:
       - uses: actions/checkout@v5
 
@@ -254,18 +254,15 @@ jobs:
           gem 'rake'
           EOF
 
-      - name: Setup Ruby (should use fallback)
+      - name: Setup Ruby (demonstrates override options)
         uses: ./
         with:
           ruby-version: ${{ matrix.ruby }}
-          # alias of ore-install: true
           bundler-cache: true
-          cache-version: 'v2'
-          # Need GH Token Authenticated requests, switch once the feature is released
-          rv-git-ref: 'main'
-          # Build both ore and gemfile-go from main
-          ore-git-ref: 'master'
-          gfgo-git-ref: 'master'
+          # Force '4.0' to use ruby/setup-ruby for benchmarking
+          use-setup-ruby: ${{ matrix.ruby == '4.0' && matrix.ruby || '' }}
+          # Force 'head' to attempt setup-ruby-flash (will fail until rv supports it)
+          # use-setup-ruby-flash: ${{ matrix.ruby == 'head' && matrix.ruby || '' }}
 
       - name: Verify Ruby installation
         run: |

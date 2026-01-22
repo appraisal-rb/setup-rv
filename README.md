@@ -171,6 +171,8 @@ When `ruby-version` is set to `default` (the default), setup-ruby-flash reads fr
 | `without-groups`       | Gem groups to exclude (comma-separated)                                                                                        | `''`                  |
 | `ruby-install-retries` | Number of retry attempts for Ruby installation (with exponential backoff)                                                      | `3`                   |
 | `no-document`          | Skip generating documentation (ri/rdoc) for installed gems. Creates `~/.gemrc` with `gem: --no-document` if file doesn't exist | `true`                |
+| `use-setup-ruby`       | Force fallback to ruby/setup-ruby for specific versions. Accepts single value or array: `'3.4'` or `['3.4', '4.0']`           | `''`                  |
+| `use-setup-ruby-flash` | Force use of setup-ruby-flash for specific versions. Accepts single value or array: `'head'` or `['head', 'jruby']`           | `''`                  |
 | `token`                | GitHub token for API calls                                                                                                     | `${{ github.token }}` |
 
 ## Outputs
@@ -326,6 +328,43 @@ JRuby, TruffleRuby, and other implementations automatically fall back to ruby/se
   with:
     ruby-version: "jruby-9.4"  # Automatic fallback
     bundler-cache: true
+```
+
+### Benchmarking: Force Fallback for Supported Versions
+
+Use `use-setup-ruby` to force specific supported versions to use ruby/setup-ruby for performance comparison:
+
+```yaml
+jobs:
+  benchmark:
+    strategy:
+      matrix:
+        ruby: ['3.4', '4.0']
+        setup: ['flash', 'ruby']
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: appraisal-rb/setup-ruby-flash@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+          # Force ruby/setup-ruby when setup == 'ruby'
+          use-setup-ruby: ${{ matrix.setup == 'ruby' && matrix.ruby || '' }}
+      - run: bundle exec rake benchmark
+```
+
+### Forward Compatibility: Force Flash for Unsupported Versions
+
+Use `use-setup-ruby-flash` to test future rv support (e.g., when rv adds head or JRuby support):
+
+```yaml
+- uses: appraisal-rb/setup-ruby-flash@v1
+  with:
+    ruby-version: "head"
+    bundler-cache: true
+    # Attempt to use setup-ruby-flash even though 'head' isn't supported yet
+    use-setup-ruby-flash: head
+    # Warning: This will fail unless rv actually supports 'head'
 ```
 
 ### Building rv or ore from Source

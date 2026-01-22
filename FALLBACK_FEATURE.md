@@ -299,26 +299,45 @@ They're aliases - both enable gem caching and installation:
 
 ### Detection Code
 
-The action uses a **allowlist approach** - checking if the version is in the supported list:
+The action uses a simple **dual-allowlist approach** supporting both numeric and special versions:
 
 ```bash
-# Check if this is a non-MRI implementation
-if [[ "$RUBY_VERSION" =~ ^(jruby|truffleruby|rbx|ree|maglev|mruby|topaz) ]]; then
-  USE_FALLBACK="true"
-# Allowlist: ONLY support MRI Ruby 3.2, 3.3, 3.4, 4.0
-elif [[ "$RUBY_VERSION" =~ ^3\.2($|\.) ]] || \
-     [[ "$RUBY_VERSION" =~ ^3\.3($|\.) ]] || \
-     [[ "$RUBY_VERSION" =~ ^3\.4($|\.) ]] || \
-     [[ "$RUBY_VERSION" =~ ^4\.0($|\.) ]]; then
-  # Supported version - use fast path
-  USE_FALLBACK="false"
-else
-  # Any other version (head, 3.5, 2.7, etc.) - use fallback
-  USE_FALLBACK="true"
+# Allowlists of supported Ruby versions (update these as rv adds support)
+# Numeric MRI versions (major.minor format)
+SUPPORTED_NUMERIC_VERSIONS="3.2 3.3 3.4 4.0"
+# Special versions and alternative implementations
+SUPPORTED_SPECIAL_VERSIONS=""  # e.g., "head jruby truffleruby" when rv supports them
+
+# Default to fallback unless version is in allowlist
+USE_FALLBACK="true"
+
+# First check special versions (head, jruby-*, truffleruby-*, etc.)
+if [ -n "$SUPPORTED_SPECIAL_VERSIONS" ]; then
+  for allowed_version in $SUPPORTED_SPECIAL_VERSIONS; do
+    if [[ "$RUBY_VERSION" == $allowed_version* ]]; then
+      USE_FALLBACK="false"
+      break
+    fi
+  done
+fi
+
+# If not found, check numeric versions
+if [ "$USE_FALLBACK" = "true" ]; then
+  VERSION_PREFIX=$(echo "$RUBY_VERSION" | grep -oE '^[0-9]+\.[0-9]+')
+  if [ -n "$VERSION_PREFIX" ]; then
+    for allowed_version in $SUPPORTED_NUMERIC_VERSIONS; do
+      if [ "$VERSION_PREFIX" = "$allowed_version" ]; then
+        USE_FALLBACK="false"
+        break
+      fi
+    done
+  fi
 fi
 ```
 
-This ensures that only the specific versions rv supports will use the fast path.
+**Adding support for new versions is trivial:**
+- Numeric versions (e.g., Ruby 4.1): Add to `SUPPORTED_NUMERIC_VERSIONS="3.2 3.3 3.4 4.0 4.1"`
+- Special versions (e.g., head, jruby): Add to `SUPPORTED_SPECIAL_VERSIONS="head jruby truffleruby"`
 
 ### Conditional Step Execution
 

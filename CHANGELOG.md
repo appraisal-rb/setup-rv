@@ -18,6 +18,11 @@
   - Shows informative notice when fallback occurs: `Ruby version 'X.X' is not supported by setup-ruby-flash (requires 3.2+). Falling back to ruby/setup-ruby.`
   - All inputs are passed through to ruby/setup-ruby when using fallback
   - Perfect for matrix builds that test across multiple Ruby versions (2.7 through 4.0)
+  - **Manual Override Controls**: New `use-setup-ruby` and `use-setup-ruby-flash` inputs allow forcing specific versions to use one action or the other
+    - `use-setup-ruby`: Force fallback for supported versions (useful for benchmarking setup-ruby-flash vs setup-ruby)
+    - `use-setup-ruby-flash`: Force flash path for unsupported versions (useful for forward compatibility when rv adds support for new versions)
+    - Accepts same format as ruby-version in a matrix: `'3.4'` for single value or `['3.4', '4.0']` for array
+    - Enables A/B testing and future-proofing workflows
 
 - **Build from Source Support**: New `rv-git-ref`, `ore-git-ref`, and `gfgo-git-ref` inputs allow building rv, ore, and gemfile-go from git branches, tags, or commits instead of using release binaries
   - `rv-git-ref`: Build rv from any git reference (requires Rust, automatically installed)
@@ -49,12 +54,23 @@
   - Applies to both release list fetching and Ruby tarball downloads from GitHub
   - No configuration needed - automatically uses token if available
 
+- **Elapsed Time Tracking**: All major build and install operations now track and display elapsed time
+  - Tracks rv build from source, rv install, Ruby install, ore build, gemfile-go build, gem install
+  - Tracks fallback setup-ruby total time when using automatic fallback
+  - All times displayed in GitHub Actions step summary for easy performance monitoring
+  - Helps identify bottlenecks and compare performance between runs
+  - Times only shown when operations actually run (not from cache)
+  - See `ELAPSED_TIME_TRACKING.md` for comprehensive documentation
+
 ### Changed
 
-- **Version Detection Logic**: Changed from blacklist to allowlist approach for supported Ruby versions
-  - Now explicitly checks for Ruby 3.2, 3.3, 3.4, 4.0 (with or without patch versions)
-  - Ensures unsupported versions like `head`, `2.7`, etc. correctly fall back to ruby/setup-ruby
-  - More maintainable and explicit about which versions are supported
+- **Version Detection Logic**: Enhanced with dual-allowlist approach for maximum flexibility
+  - `SUPPORTED_NUMERIC_VERSIONS="3.2 3.3 3.4 4.0"` for MRI versions (major.minor format)
+  - `SUPPORTED_SPECIAL_VERSIONS=""` for special versions like head, jruby, truffleruby (empty now, ready for future)
+  - Supports prefix matching for special versions (e.g., "jruby" matches "jruby-9.4", "jruby-9.5", etc.)
+  - Makes it trivial to add support for new versions - just update the appropriate allowlist
+  - Defaults to fallback unless explicitly in an allowlist
+  - More maintainable and prepared for future rv enhancements
 - Cache keys now include `build-from-source` flag to prevent collision between git refs and release versions
 - Improved version resolution to handle both release versions and git references
 - **Bundler Installation Optimization**: Skip Bundler installation when `rubygems: latest` is used, as the latest RubyGems includes the latest Bundler (they are always released together)
