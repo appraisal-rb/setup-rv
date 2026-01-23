@@ -1101,6 +1101,14 @@ runs:
         echo "Using Ruby: $(which ruby)"
         echo "Ruby version: $(ruby --version)"
         echo "GEM_HOME: $GEM_HOME"
+        
+        # Debug: Check what gems are already in GEM_HOME
+        echo "==> Gems in $GEM_HOME before ore install:"
+        if [ -d "$GEM_HOME/gems" ]; then
+          ls -1 "$GEM_HOME/gems" | head -20
+        else
+          echo "  (gems directory doesn't exist yet)"
+        fi
 
         # Configure .gemrc to skip documentation if requested
         # This affects all gem installations including those done by Bundler/ore
@@ -1128,6 +1136,27 @@ runs:
         $INSTALL_CMD
         END_TIME=$(date +%s)
         ELAPSED=$((END_TIME - START_TIME))
+        
+        # Debug: Show the lockfile that was generated
+        if [ -n "$BUNDLE_GEMFILE" ]; then
+          LOCKFILE="${BUNDLE_GEMFILE}.lock"
+        else
+          LOCKFILE="Gemfile.lock"
+        fi
+        echo "==> Lockfile contents ($LOCKFILE):"
+        if [ -f "$LOCKFILE" ]; then
+          cat "$LOCKFILE"
+        else
+          echo "  (lockfile not found!)"
+        fi
+        
+        # Debug: Check what gems are in GEM_HOME after ore install
+        echo "==> Gems in $GEM_HOME after ore install:"
+        if [ -d "$GEM_HOME/gems" ]; then
+          ls -1 "$GEM_HOME/gems" | head -20
+        else
+          echo "  (gems directory still doesn't exist!)"
+        fi
 
         echo "ore-version=${{ steps.ore-version.outputs.version }}" >> $GITHUB_OUTPUT
         echo "cache-hit=${{ steps.cache-gems.outputs.cache-hit }}" >> $GITHUB_OUTPUT
