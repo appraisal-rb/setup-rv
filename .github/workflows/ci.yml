@@ -101,6 +101,9 @@ jobs:
           echo "GEM_PATH=$GEM_PATH"
           echo "Ruby: $(which ruby)"
           echo "Ruby version: $(ruby --version)"
+          echo "==> Filesystem check:"
+          echo "Looking for gems in: $GEM_HOME/gems"
+          ls -la "$GEM_HOME/gems" || echo "Directory not found"
           echo "==> Installed gems:"
           ore list
           echo "==> ore check (verbose):"
