@@ -44,7 +44,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Verify Ruby installation
@@ -88,7 +88,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Verify ore installation
@@ -140,7 +140,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Ensure ore is installed (diagnostic)
@@ -240,7 +240,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Ensure ore is installed (diagnostic)
@@ -350,7 +350,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Run acceptance tests
@@ -373,7 +373,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Run RuboCop
@@ -408,7 +408,7 @@ jobs:
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
-          ore-git-ref: 'feat/debugging'
+          ore-git-ref: 'master'
           gfgo-git-ref: 'master'
 
       - name: Verify ore installation
