@@ -363,11 +363,25 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
-        # If git ref is specified, use it for cache key
+        # If git ref is specified, resolve to commit SHA for cache key
         if [ -n "${{ inputs.rv-git-ref }}" ]; then
-          VERSION="${{ inputs.rv-git-ref }}"
+          GIT_REF="${{ inputs.rv-git-ref }}"
           echo "build-from-source=true" >> $GITHUB_OUTPUT
-          echo "Using rv git ref: $VERSION (will build from source)"
+          
+          # Parse fork syntax: owner:ref or just ref
+          if [[ "$GIT_REF" == *":"* ]]; then
+            FORK_OWNER="${GIT_REF%%:*}"
+            REF="${GIT_REF#*:}"
+            REPO="$FORK_OWNER/rv"
+          else
+            REPO="spinel-coop/rv"
+            REF="$GIT_REF"
+          fi
+          
+          # Resolve to commit SHA using GitHub API
+          COMMIT_SHA=$(gh api "repos/$REPO/commits/$REF" --jq '.sha' 2>/dev/null || echo "$REF")
+          VERSION="${COMMIT_SHA:0:12}"  # Use first 12 chars of SHA
+          echo "Using rv git ref: $GIT_REF (commit: $VERSION)"
         elif [ "${{ inputs.rv-version }}" = "latest" ]; then
           VERSION=$(gh api repos/spinel-coop/rv/releases/latest --jq '.tag_name' 2>/dev/null || echo "v0.4.1")
           echo "build-from-source=false" >> $GITHUB_OUTPUT
@@ -423,6 +437,11 @@ runs:
             exit 1
           fi
         fi
+
+        # Get the actual commit SHA for cache busting
+        COMMIT_SHA=$(git rev-parse HEAD)
+        echo "Building rv at commit: $COMMIT_SHA"
+        echo "commit-sha=$COMMIT_SHA" >> $GITHUB_OUTPUT
 
         # Build rv using cargo
         cargo build --release
@@ -806,11 +825,25 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
-        # If git ref is specified, use it for cache key
+        # If git ref is specified, resolve to commit SHA for cache key
         if [ -n "${{ inputs.ore-git-ref }}" ]; then
-          VERSION="${{ inputs.ore-git-ref }}"
+          GIT_REF="${{ inputs.ore-git-ref }}"
           echo "build-from-source=true" >> $GITHUB_OUTPUT
-          echo "Using ore git ref: $VERSION (will build from source)"
+          
+          # Parse fork syntax: owner:ref or just ref
+          if [[ "$GIT_REF" == *":"* ]]; then
+            FORK_OWNER="${GIT_REF%%:*}"
+            REF="${GIT_REF#*:}"
+            REPO="$FORK_OWNER/ore-light"
+          else
+            REPO="contriboss/ore-light"
+            REF="$GIT_REF"
+          fi
+          
+          # Resolve to commit SHA using GitHub API
+          COMMIT_SHA=$(gh api "repos/$REPO/commits/$REF" --jq '.sha' 2>/dev/null || echo "$REF")
+          VERSION="${COMMIT_SHA:0:12}"  # Use first 12 chars of SHA
+          echo "Using ore git ref: $GIT_REF (commit: $VERSION)"
         elif [ "${{ inputs.ore-version }}" = "latest" ]; then
           VERSION=$(gh api repos/contriboss/ore-light/releases/latest --jq '.tag_name' 2>/dev/null || echo "v0.18.0")
           echo "build-from-source=false" >> $GITHUB_OUTPUT
@@ -821,6 +854,29 @@ runs:
         VERSION="${VERSION#v}"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Resolved ore version: $VERSION"
+        
+        # Also resolve gfgo-git-ref if specified (affects ore cache key)
+        if [ -n "${{ inputs.gfgo-git-ref }}" ]; then
+          GFGO_REF="${{ inputs.gfgo-git-ref }}"
+          
+          # Parse fork syntax: owner:ref or just ref
+          if [[ "$GFGO_REF" == *":"* ]]; then
+            GFGO_FORK_OWNER="${GFGO_REF%%:*}"
+            GFGO_REF_NAME="${GFGO_REF#*:}"
+            GFGO_REPO="$GFGO_FORK_OWNER/gemfile-go"
+          else
+            GFGO_REPO="contriboss/gemfile-go"
+            GFGO_REF_NAME="$GFGO_REF"
+          fi
+          
+          # Resolve to commit SHA
+          GFGO_SHA=$(gh api "repos/$GFGO_REPO/commits/$GFGO_REF_NAME" --jq '.sha' 2>/dev/null || echo "$GFGO_REF")
+          GFGO_VERSION="${GFGO_SHA:0:12}"
+          echo "gfgo-version=$GFGO_VERSION" >> $GITHUB_OUTPUT
+          echo "Using gemfile-go git ref: $GFGO_REF (commit: $GFGO_VERSION)"
+        else
+          echo "gfgo-version=" >> $GITHUB_OUTPUT
+        fi
 
     - name: Cache ore binary
       if: steps.check-support.outputs.use-fallback != 'true' && (inputs.ore-install == 'true' || inputs.bundler-cache == 'true')
@@ -828,7 +884,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin/ore
-        key: setup-ruby-flash-ore-${{ steps.platform.outputs.platform }}-ruby-${{ steps.detect-ruby.outputs.version }}-${{ steps.ore-version.outputs.version }}-${{ steps.ore-version.outputs.build-from-source }}-gfgo-${{ inputs.gfgo-git-ref }}
+        key: setup-ruby-flash-ore-${{ steps.platform.outputs.platform }}-ruby-${{ steps.detect-ruby.outputs.version }}-${{ steps.ore-version.outputs.version }}-${{ steps.ore-version.outputs.build-from-source }}-gfgo-${{ steps.ore-version.outputs.gfgo-version }}
 
     - name: Setup Go toolchain for ore
       if: steps.check-support.outputs.use-fallback != 'true' && (inputs.ore-install == 'true' || inputs.bundler-cache == 'true') && steps.cache-ore.outputs.cache-hit != 'true' && steps.ore-version.outputs.build-from-source == 'true'
@@ -841,6 +897,13 @@ runs:
       id: build-ore
       shell: bash
       run: |
+        # Activate rv environment so ore detects the correct Ruby version
+        eval "$(~/.local/bin/rv shell env bash)"
+        
+        # Verify Ruby is active
+        echo "Ruby in PATH: $(which ruby)"
+        echo "Ruby version: $(ruby --version)"
+        
         GIT_REF="${{ inputs.ore-git-ref }}"
         GFGO_GIT_REF="${{ inputs.gfgo-git-ref }}"
         echo "Building ore from source (git ref: $GIT_REF)..."
@@ -988,9 +1051,9 @@ runs:
         GEM_HOME: ${{ steps.setup.outputs.ruby-prefix }}/lib/ruby/gems/${{ steps.detect-ruby.outputs.version }}.0
         GEM_PATH: ${{ steps.setup.outputs.ruby-prefix }}/lib/ruby/gems/${{ steps.detect-ruby.outputs.version }}.0
       run: |
-        # Ensure we're using the rv-installed Ruby
-        export PATH="${{ steps.setup.outputs.ruby-prefix }}/bin:$PATH"
-
+        # Activate rv environment to ensure correct Ruby
+        eval "$(~/.local/bin/rv shell env bash)"
+        
         # Verify we're using the right Ruby
         echo "Using Ruby: $(which ruby)"
         echo "Ruby version: $(ruby --version)"
