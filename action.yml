@@ -558,32 +558,37 @@ runs:
         echo "::error::Failed to install Ruby $RUBY_VERSION after $MAX_RETRIES attempts"
         exit 1
 
-    - name: Configure Ruby environment
+    - name: Configure Ruby environment with rv shell integration
       if: steps.check-support.outputs.use-fallback != 'true'
       id: setup
       shell: bash
       run: |
         RUBY_VERSION="${{ steps.detect-ruby.outputs.version }}"
 
-        # Use rv to find the installed Ruby executable path
-        RUBY_EXECUTABLE=$(~/.local/bin/rv ruby find "$RUBY_VERSION" 2>/dev/null)
+        # Use rv to set the active Ruby version for this project
+        ~/.local/bin/rv ruby pin "$RUBY_VERSION"
+        echo "Pinned Ruby version to $RUBY_VERSION"
 
+        # Activate rv shell integration to set up PATH and environment
+        eval "$(~/.local/bin/rv shell env bash)"
+
+        # Verify Ruby is now active
+        RUBY_EXECUTABLE=$(which ruby)
         if [ -z "$RUBY_EXECUTABLE" ]; then
-          echo "::error::Could not find Ruby $RUBY_VERSION installation"
+          echo "::error::Ruby not found in PATH after rv activation"
           ~/.local/bin/rv ruby list || true
           exit 1
         fi
 
-        # Get the bin directory from the executable path
+        # Get Ruby installation details
         RUBY_BIN_DIR=$(dirname "$RUBY_EXECUTABLE")
         RUBY_PREFIX=$(dirname "$RUBY_BIN_DIR")
         echo "Found Ruby at: $RUBY_PREFIX"
 
-        # Add Ruby to PATH
+        # Add Ruby to GITHUB_PATH for subsequent steps
         echo "$RUBY_BIN_DIR" >> $GITHUB_PATH
 
-        # Get the actual full Ruby version for cache key accuracy
-        export PATH="$RUBY_BIN_DIR:$PATH"
+        # Get versions for outputs
         FULL_RUBY_VERSION=$(ruby -e 'print RUBY_VERSION')
         GEM_VERSION=$(gem --version)
 
