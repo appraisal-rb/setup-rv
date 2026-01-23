@@ -918,18 +918,26 @@ runs:
         RUBY_VERSION="${{ steps.detect-ruby.outputs.version }}"
         
         # Activate rv shell integration with the specific Ruby version
-        # We can't rely on an existing .ruby-version because we're building in /tmp
-        # Create a temporary .ruby-version file for rv to use
-        RV_TMP_DIR="$(mktemp -d)"
-        echo "$RUBY_VERSION" > "$RV_TMP_DIR/.ruby-version"
+        # Save the current .ruby-version if it exists
+        if [ -f .ruby-version ]; then
+          SAVED_RUBY_VERSION=$(cat .ruby-version)
+          HAD_RUBY_VERSION=true
+        else
+          HAD_RUBY_VERSION=false
+        fi
+        
+        # Create/overwrite .ruby-version with the Ruby version we're using
+        echo "$RUBY_VERSION" > .ruby-version
         
         # Use rv shell integration to set up the environment
-        cd "$RV_TMP_DIR"
         eval "$(~/.local/bin/rv shell env bash)"
-        cd - > /dev/null
         
-        # Clean up temporary directory
-        rm -rf "$RV_TMP_DIR"
+        # Restore original .ruby-version or remove it
+        if [ "$HAD_RUBY_VERSION" = true ]; then
+          echo "$SAVED_RUBY_VERSION" > .ruby-version
+        else
+          rm -f .ruby-version
+        fi
         
         # Verify Ruby is active
         echo "Ruby in PATH: $(which ruby)"
