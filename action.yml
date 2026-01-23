@@ -1047,10 +1047,21 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        if [ -f "Gemfile.lock" ]; then
-          LOCKFILE_HASH=$(sha256sum Gemfile.lock | awk '{print $1}' | cut -c1-12)
+        # Determine which lockfile to use based on BUNDLE_GEMFILE
+        if [ -n "$BUNDLE_GEMFILE" ]; then
+          # If BUNDLE_GEMFILE is set, derive lockfile name from it
+          LOCKFILE="${BUNDLE_GEMFILE}.lock"
+        else
+          # Default to Gemfile.lock
+          LOCKFILE="Gemfile.lock"
+        fi
+        
+        if [ -f "$LOCKFILE" ]; then
+          LOCKFILE_HASH=$(sha256sum "$LOCKFILE" | awk '{print $1}' | cut -c1-12)
+          echo "Using lockfile: $LOCKFILE (hash: $LOCKFILE_HASH)"
         else
           LOCKFILE_HASH="no-lockfile"
+          echo "No lockfile found: $LOCKFILE"
         fi
 
         # Use full Ruby version to prevent ABI mismatch with native extensions
