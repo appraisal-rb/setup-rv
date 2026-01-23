@@ -581,15 +581,31 @@ runs:
       if: steps.check-support.outputs.use-fallback != 'true'
       id: setup
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       run: |
         RUBY_VERSION="${{ steps.detect-ruby.outputs.version }}"
 
-        # Use rv to set the active Ruby version for this project
-        ~/.local/bin/rv ruby pin "$RUBY_VERSION"
-        echo "Pinned Ruby version to $RUBY_VERSION"
+        # Ensure .ruby-version exists in working directory so rv knows which Ruby to activate
+        # Only create it if it doesn't exist (don't override existing files)
+        if [ ! -f .ruby-version ]; then
+          echo "$RUBY_VERSION" > .ruby-version
+          echo "Created .ruby-version with $RUBY_VERSION"
+        else
+          echo "Using existing .ruby-version: $(cat .ruby-version)"
+        fi
 
         # Activate rv shell integration to set up PATH and environment
+        # This will now use the .ruby-version file we ensured exists
         eval "$(~/.local/bin/rv shell env bash)"
+
+        # Export rv environment variables to GITHUB_ENV for subsequent steps
+        # rv sets: PATH, GEM_HOME, GEM_PATH, RUBY_ROOT, RUBY_ENGINE, RUBY_VERSION, etc.
+        [ -n "$GEM_HOME" ] && echo "GEM_HOME=$GEM_HOME" >> $GITHUB_ENV
+        [ -n "$GEM_PATH" ] && echo "GEM_PATH=$GEM_PATH" >> $GITHUB_ENV
+        [ -n "$RUBY_ROOT" ] && echo "RUBY_ROOT=$RUBY_ROOT" >> $GITHUB_ENV
+        [ -n "$RUBY_ENGINE" ] && echo "RUBY_ENGINE=$RUBY_ENGINE" >> $GITHUB_ENV
+        [ -n "$RUBY_VERSION" ] && echo "RUBY_VERSION=$RUBY_VERSION" >> $GITHUB_ENV
+        [ -n "$RUBYOPT" ] && echo "RUBYOPT=$RUBYOPT" >> $GITHUB_ENV
 
         # Verify Ruby is now active
         RUBY_EXECUTABLE=$(which ruby)
@@ -897,10 +913,16 @@ runs:
       id: build-ore
       shell: bash
       run: |
-        # Activate rv environment so ore detects the correct Ruby version
-        eval "$(~/.local/bin/rv shell env bash)"
+        # Get the Ruby version we should be using
+        RUBY_VERSION="${{ steps.detect-ruby.outputs.version }}"
+        
+        # Activate rv environment with the specific Ruby version
+        # We can't rely on .ruby-version because we're building in /tmp
+        export PATH="$(~/.local/bin/rv ruby find "$RUBY_VERSION" | xargs dirname):$PATH"
         
         # Verify Ruby is active
+        echo "Ruby in PATH: $(which ruby)"
+        echo "Ruby version: $(ruby --version)"
         echo "Ruby in PATH: $(which ruby)"
         echo "Ruby version: $(ruby --version)"
         
@@ -1045,14 +1067,9 @@ runs:
       id: install-gems
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        # Ensure ore uses the rv-installed Ruby's gem directory
-        # Use ruby-full-version for the gems path (e.g., 3.4.8 -> gems/3.4.0)
-        GEM_HOME: ${{ steps.setup.outputs.ruby-prefix }}/lib/ruby/gems/${{ steps.detect-ruby.outputs.version }}.0
-        GEM_PATH: ${{ steps.setup.outputs.ruby-prefix }}/lib/ruby/gems/${{ steps.detect-ruby.outputs.version }}.0
       run: |
-        # Activate rv environment to ensure correct Ruby
-        eval "$(~/.local/bin/rv shell env bash)"
+        # Environment variables (GEM_HOME, GEM_PATH, etc.) are already set via GITHUB_ENV
+        # from the "Configure Ruby environment" step
         
         # Verify we're using the right Ruby
         echo "Using Ruby: $(which ruby)"
