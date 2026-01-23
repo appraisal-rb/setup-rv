@@ -41,7 +41,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby }}
           ore-install: true
-          cache-version: 'v2'
+          cache-version: 'v3'
           # Need GH Token Authenticated requests, switch once the feature is released
           rv-git-ref: 'main'
           # Build both ore and gemfile-go from main
