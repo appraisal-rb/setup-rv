@@ -598,10 +598,16 @@ runs:
         # This will now use the .ruby-version file we ensured exists
         eval "$(~/.local/bin/rv shell env bash)"
 
-        # Export rv environment variables to GITHUB_ENV for subsequent steps
-        # rv sets: PATH, GEM_HOME, GEM_PATH, RUBY_ROOT, RUBY_ENGINE, RUBY_VERSION, etc.
-        [ -n "$GEM_HOME" ] && echo "GEM_HOME=$GEM_HOME" >> $GITHUB_ENV
-        [ -n "$GEM_PATH" ] && echo "GEM_PATH=$GEM_PATH" >> $GITHUB_ENV
+        # rv unsets GEM_HOME/GEM_PATH to let Ruby use defaults
+        # We need to query Ruby for these values and export them for subsequent steps
+        ACTUAL_GEM_HOME=$(ruby -e 'print Gem.dir')
+        ACTUAL_GEM_PATH=$(ruby -e 'print Gem.path.join(":")')
+        
+        # Export environment variables to GITHUB_ENV for subsequent steps
+        echo "GEM_HOME=$ACTUAL_GEM_HOME" >> $GITHUB_ENV
+        echo "GEM_PATH=$ACTUAL_GEM_PATH" >> $GITHUB_ENV
+        
+        # Export other Ruby-related variables if they're set
         [ -n "$RUBY_ROOT" ] && echo "RUBY_ROOT=$RUBY_ROOT" >> $GITHUB_ENV
         [ -n "$RUBY_ENGINE" ] && echo "RUBY_ENGINE=$RUBY_ENGINE" >> $GITHUB_ENV
         [ -n "$RUBY_VERSION" ] && echo "RUBY_VERSION=$RUBY_VERSION" >> $GITHUB_ENV
