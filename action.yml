@@ -1093,6 +1093,7 @@ runs:
       with:
         path: |
           ${{ steps.setup.outputs.ruby-prefix }}/lib/ruby/gems
+          ~/.cache/ore/gems
         key: ${{ steps.gem-cache-key.outputs.key }}
         restore-keys: ${{ steps.gem-cache-key.outputs.restore-keys }}
 
