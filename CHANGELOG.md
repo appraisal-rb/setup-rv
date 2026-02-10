@@ -77,6 +77,8 @@
 
 ### Fixed
 
+- handle various types of ruby version specification consistently.
+  - handle `ruby-*` prefix properly.
 - **Version Detection**: Ruby versions like `head`, `3.5`, and other unsupported versions now correctly fall back to ruby/setup-ruby instead of incorrectly attempting to use rv
 - **Ore Cache Key**: Added Ruby version to ore binary cache key to prevent using ore built with wrong Ruby version
   - Ore embeds Ruby version information at build time (for `--version` output)

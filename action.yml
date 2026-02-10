@@ -212,6 +212,23 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
+        # Helper function to normalize Ruby version from any source
+        normalize_ruby_version() {
+          local version="$1"
+          
+          # Remove all leading/trailing whitespace
+          version=$(echo "$version" | tr -d '[:space:]')
+          
+          # Strip only the MRI ruby- prefix (not jruby-, truffleruby-, etc.)
+          # MRI ruby versions can be specified as "ruby-3.4" or just "3.4"
+          # Alternative implementations keep their prefix (jruby-10.0.3.0, truffleruby-33.0, etc.)
+          if [[ "$version" =~ ^ruby-[0-9] ]]; then
+            version=$(echo "$version" | sed 's/^ruby-//')
+          fi
+          
+          echo "$version"
+        }
+        
         RUBY_VERSION="${{ inputs.ruby-version }}"
         USE_FALLBACK="false"
         OVERRIDE_REASON=""
@@ -219,13 +236,19 @@ runs:
         # Resolve version if 'default'
         if [ "$RUBY_VERSION" = "default" ]; then
           if [ -f ".ruby-version" ]; then
-            RUBY_VERSION=$(cat .ruby-version | head -1 | sed 's/^ruby-//' | tr -d '[:space:]')
+            RUBY_VERSION=$(cat .ruby-version | head -1)
           elif [ -f ".tool-versions" ]; then
-            RUBY_VERSION=$(grep '^ruby ' .tool-versions | awk '{print $2}' | sed 's/^ruby-//')
+            RUBY_VERSION=$(grep '^ruby ' .tool-versions | awk '{print $2}')
           elif [ -f "mise.toml" ]; then
-            RUBY_VERSION=$(grep 'ruby' mise.toml | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/' | sed 's/^ruby-//')
+            RUBY_VERSION=$(grep 'ruby' mise.toml | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/')
           fi
-        elif [ "$RUBY_VERSION" = "ruby" ]; then
+        fi
+        
+        # Normalize the version string
+        RUBY_VERSION=$(normalize_ruby_version "$RUBY_VERSION")
+        
+        # Handle special "ruby" keyword (latest stable)
+        if [ "$RUBY_VERSION" = "ruby" ]; then
           RUBY_VERSION="4.0"
         fi
         
@@ -512,27 +535,49 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
+        # Helper function to normalize Ruby version from any source
+        normalize_ruby_version() {
+          local version="$1"
+          
+          # Remove all leading/trailing whitespace
+          version=$(echo "$version" | tr -d '[:space:]')
+          
+          # Strip only the MRI ruby- prefix (not jruby-, truffleruby-, etc.)
+          # MRI ruby versions can be specified as "ruby-3.4" or just "3.4"
+          # Alternative implementations keep their prefix (jruby-10.0.3.0, truffleruby-33.0, etc.)
+          if [[ "$version" =~ ^ruby-[0-9] ]]; then
+            version=$(echo "$version" | sed 's/^ruby-//')
+          fi
+          
+          echo "$version"
+        }
+        
         RUBY_VERSION="${{ inputs.ruby-version }}"
 
-        # 'ruby' means latest stable Ruby version (like setup-ruby)
-        if [ "$RUBY_VERSION" = "ruby" ]; then
-          RUBY_VERSION="4.0"
-          echo "Using latest stable Ruby version: $RUBY_VERSION"
-        elif [ "$RUBY_VERSION" = "default" ]; then
-          # Check version files in order of precedence
+        # Resolve version if 'default'
+        if [ "$RUBY_VERSION" = "default" ]; then
           if [ -f ".ruby-version" ]; then
-            RUBY_VERSION=$(cat .ruby-version | head -1 | sed 's/^ruby-//' | tr -d '[:space:]')
+            RUBY_VERSION=$(cat .ruby-version | head -1)
             echo "Found Ruby version in .ruby-version: $RUBY_VERSION"
           elif [ -f ".tool-versions" ]; then
-            RUBY_VERSION=$(grep '^ruby ' .tool-versions | awk '{print $2}' | sed 's/^ruby-//')
+            RUBY_VERSION=$(grep '^ruby ' .tool-versions | awk '{print $2}')
             echo "Found Ruby version in .tool-versions: $RUBY_VERSION"
           elif [ -f "mise.toml" ]; then
-            RUBY_VERSION=$(grep 'ruby' mise.toml | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/' | sed 's/^ruby-//')
+            RUBY_VERSION=$(grep 'ruby' mise.toml | sed 's/.*= *"\?\([^"]*\)"\?.*/\1/')
             echo "Found Ruby version in mise.toml: $RUBY_VERSION"
           else
             echo "::error::No Ruby version specified and no version file found (.ruby-version, .tool-versions, mise.toml)"
             exit 1
           fi
+        fi
+
+        # Normalize the version string
+        RUBY_VERSION=$(normalize_ruby_version "$RUBY_VERSION")
+
+        # Handle special "ruby" keyword (latest stable)
+        if [ "$RUBY_VERSION" = "ruby" ]; then
+          RUBY_VERSION="4.0"
+          echo "Using latest stable Ruby version: $RUBY_VERSION"
         fi
 
         echo "version=$RUBY_VERSION" >> $GITHUB_OUTPUT
